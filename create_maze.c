@@ -65,7 +65,7 @@ int add_treasure()
   int i;
   
   treasure_pick:
-  i=(rand()%2810)+128; // use the arduboy random seed!
+  i=(pseudo_random()%2810)+128; // use the arduboy random seed!
   if (read_maze(i)==WALL_GREY || read_maze(i+1)==WALL_GREY ||
       read_maze(i-1)==WALL_GREY) goto treasure_pick;
   write_maze(i,TREASURE);
@@ -85,7 +85,7 @@ int move_treasure()
 }
 
 //-------------------------------------------------------------
-// pseudorandom 8-bit number generator.
+// fast pseudorandom 8-bit number generator.
 // x(n+1) = ( x(n)*67+509 ) modulo 256.
 // (note that this has a period of 128 instead of 256.)
 void update_random()
@@ -99,7 +99,8 @@ void update_random()
 // from the program or frame counter or something.
 void seed_random8bit()
 {
-  random8bit=rand()%256;
+  //random8bit=rand()%256;
+  random8bit=pseudo_random()%256;
   update_random();
 }
 
@@ -168,7 +169,7 @@ int try_down(int posn)
 // starts from the given treasure location.
 int add_pathways(int treasure)
 {
-  int timeout=65535;
+  unsigned int timeout=10000;
   int posn=treasure;
   int newposn;
   int dir;
@@ -338,11 +339,12 @@ void create_maze()
     int treasure_location;
     int maze_size;
     
-    srandom(maze_number ); // seed RNG  
+    seed_pseudo_random(maze_number ); // seed RNG
     random8bit=195; counter=1; counter2=70; // ensure consistancy
     
     mstart: 
     blank_maze();
+    
     treasure_location=add_treasure();
     maze_size=add_pathways(treasure_location);
     if (maze_size<1201) {
@@ -354,5 +356,6 @@ void create_maze()
     if (add_swords(40)) goto mstart;
     if (add_prisoners(30)) goto mstart;
     if (add_mazogs(38)) goto mstart;
+
 }
 

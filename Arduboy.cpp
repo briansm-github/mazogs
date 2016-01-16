@@ -155,8 +155,8 @@ void Arduboy::drawbitmap(const unsigned char *bitmap, int posn, int size, int in
   SPI.transfer(end & 0x07); 
   *dcport |= dcpinmask;
   *csport &= ~cspinmask;
-  if (invert) for (int a = 0; a<size; a++) SPI.transfer(~*bitmap++);
-         else for (int a = 0; a<size; a++) SPI.transfer(*bitmap++);
+  if (invert) for (int a = 0; a<size; a++) SPI.transfer(~pgm_read_byte(bitmap++));
+         else for (int a = 0; a<size; a++) SPI.transfer(pgm_read_byte(bitmap++));
 }
 
 //----------------------------------------------------------------------
@@ -178,11 +178,11 @@ void Arduboy::draw24x16tile(const unsigned char *bitmap, int x, int y) {
   SPI.transfer(end & 0x07); 
   *dcport |= dcpinmask;
   *csport &= ~cspinmask;
-  for (int a = 0; a<24*2; a++) SPI.transfer(*bitmap++);                                
+  for (int a = 0; a<24*2; a++) SPI.transfer(pgm_read_byte(bitmap++));                                
 }
 
 //----------------------------------------------------------------------
-void Arduboy::draw4x4tiles(const unsigned char *bitmap, int x, int y) {
+void Arduboy::draw4x4tiles(unsigned char *bitmap, int x, int y) {
   *csport |= cspinmask;
   *dcport &= ~dcpinmask;
   *csport &= ~cspinmask;
@@ -213,16 +213,16 @@ void Arduboy::drawchar(unsigned char *bitmap, int x, int y) {
   SPI.transfer(0x21);     // set col address
   unsigned char start = x;
   unsigned char end = x+5; // inclusive?
-  SPI.transfer(50);
-  SPI.transfer(55);
+  SPI.transfer(start);
+  SPI.transfer(end);
   SPI.transfer(0x22); // set page address
   start = y;
   end = y;
-  SPI.transfer(1);
-  SPI.transfer(1); 
+  SPI.transfer(start);
+  SPI.transfer(end); 
   *dcport |= dcpinmask;
   *csport &= ~cspinmask;
-  for (int a = 0; a<6; a++) SPI.transfer(170);                          
+  for (int a = 0; a<6; a++) SPI.transfer(*bitmap++);                          
 }
 
 //---------------------------------------------------------------------

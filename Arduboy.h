@@ -16,7 +16,7 @@ class Arduboy {
     void grey();
     void drawbitmap(const unsigned char *bitmap, int posn, int size, int invert);
     void draw24x16tile(const unsigned char *bitmap, int x, int y);
-    void draw4x4tiles(const unsigned char *bitmap, int x, int y);
+    void draw4x4tiles(unsigned char *bitmap, int x, int y);
     void drawchar(unsigned char *bitmap, int x, int y);
 		
 		void drawTile(int x, int _y, const unsigned char *image);

@@ -17,16 +17,45 @@ extern "C" const  unsigned char font[];
 
 //------------------------------------------------------------
 extern "C" int read_keys();
-int read_keys()
+int read_keys() // swap 'KEY_A' and 'KEY_B' around to suit taste
 {
   uint8_t input = Arduboy.getInput();
   if (input & (1<<5)) return(KEY_LEFT);
   if (input & (1<<4)) return(KEY_UP);
   if (input & (1<<3)) return(KEY_RIGHT);
   if (input & (1<<2)) return(KEY_DOWN);
-  if (input & (1<<1)) return(KEY_A);  // a button?
+  if (input & (1<<0)) return(KEY_A);  // a button?
   if (input & (1<<1)) return(KEY_B);  // b button?
   return(0);  
+}
+
+//------------------------------------------------------------
+extern "C" void pause(int d); // pause for 'd' milliseconds
+void pause(int d)
+{
+ delay(d);
+}
+
+//------------------------------------------------------------
+extern "C" unsigned int true_random();
+unsigned int true_random()
+{
+  return(micros()%65536); // use microsecond counter for entropy
+}
+//------------------------------------------------------------
+
+extern "C" void seed_pseudo_random(unsigned int r);
+void seed_pseudo_random(unsigned int r)
+{
+   randomSeed(r);
+}
+
+//------------------------------------------------------------
+
+extern "C" unsigned int pseudo_random();
+unsigned int pseudo_random()
+{
+   return(random(65536));
 }
 
 //------------------------------------------------------------
@@ -76,7 +105,7 @@ void draw4x4tile(int tile1,int tile2, int x, int y)
   
   
   for (i=0; i<4; i++) {
-    a[i]=tiles4x4[tile2*4+i]*16+tiles4x4[tile1*4+i];
+    a[i]=pgm_read_byte(tiles4x4+tile2*4+i)*16+pgm_read_byte(tiles4x4+tile1*4+i);
   };
   Arduboy.draw4x4tiles(a,x*4,y/2);
 }
@@ -92,10 +121,10 @@ void print(int x, int y, char *s, int colour)
   c=*s++; 
   while(c!=0) {
     if (colour==1) {
-        for (i=0; i<5; i++) c6[i]=*(font+c*5+i); c6[5]=0;
+        for (i=0; i<5; i++) c6[i]=pgm_read_byte(font+c*5+i); c6[5]=0;
         Arduboy.drawchar(c6,x,y/8);
     } else {
-         for (i=0; i<5; i++) c6[i]=~*(font+c*5+i); c6[5]=255;
+         for (i=0; i<5; i++) c6[i]=~pgm_read_byte(font+c*5+i); c6[5]=255;
          Arduboy.drawchar(c6,x,y/8);
     }
     c=*s++; // next character in the string
@@ -106,6 +135,7 @@ void print(int x, int y, char *s, int colour)
 //-------------------------------------------------------------
 
 void setup() {
+  
 	SPI.begin();
 	Arduboy.start();
 	Arduboy.blank();
@@ -117,14 +147,6 @@ void setup() {
 }
 
 void loop() {
-/* 
-  unsigned char a[5];
-  int i;
-  for (i=0; i<5; i++) a[i]=font[i+'a'*5];
-  //white_screen();
-  //print(0,0,"hello",1);
-  Arduboy.drawchar(a,0,0);
-  delay(1000);
-*/
+
    loop_c();
 }

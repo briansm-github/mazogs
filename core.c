@@ -11,6 +11,8 @@ extern char zx81chars_inv[];
 extern int read_maze();
 extern int write_maze();
 extern void black_screen();
+extern void pause();
+extern unsigned int random_seed();
 
 extern int random8bit;
 
@@ -64,7 +66,7 @@ int view_map(int posn)
       move_mazogs(posn);
       if (read_maze(posn)==MAZOG) return(1); // fight!
     }
-    delay(200);
+    pause(200);
   }
   return(0);
 }
@@ -98,7 +100,7 @@ int explore_map()
         draw4x4tile(tile1,tile2,x,y);        
       }
       display_display();
-      delay(100);
+      pause(100);
       keypress=read_keys();
       if (keypress==KEY_UP && posn>63) posn-=64; 
       if (keypress==KEY_DOWN && posn<1984) posn+=64; 
@@ -183,7 +185,7 @@ int draw_maze(int posn)
 
 //----------------------------------------------------------
 // Process the next player move.
-int check_move(int posn, int newposn)
+unsigned int check_move(int posn, int newposn)
 {
   int tile;
   
@@ -249,7 +251,7 @@ int fight(int posn)
        if (n%2==0) { pose=FIGHT+n/2; frame=frame^1; }
        else pose=MAZOG;
        draw_maze(posn);
-       delay(100);
+       pause(100);
      
    }
    write_maze(posn,CLEAR);
@@ -263,17 +265,17 @@ int fight(int posn)
 
 //----------------------------------------------------------
 // This is the main game-play loop. Exits at end of a game.
-int enter_maze(int start_posn)
+unsigned int enter_maze()
 {
-    int posn=start_posn;
+    unsigned int posn=HOME;
     int k;
-    
+
     grey_screen();
     while(1) {
       if (level==3) move_mazogs(posn);
       if (read_maze(posn)==MAZOG) if (fight(posn)) return(posn); // fight result
       draw_maze(posn);
-      delay(200);
+      pause(200);
       k=read_keys();
       if (k==KEY_UP) posn=check_move(posn,posn-64); 
       else if (k==KEY_DOWN) posn=check_move(posn,posn+64); 
@@ -299,33 +301,31 @@ int enter_maze(int start_posn)
 //----------------------------------------------------------
 void setup_c()
 {
-  //intro();
-  //LOAD(); // nostalgia  
+  intro();
+  LOAD(); // nostalgia  
 }
 
 //----------------------------------------------------------
 void loop_c()
 {
-  int posn;
+  unsigned int end_posn;
 
   
   initial_moves=0; moves_left=0; carrying=HAVE_NOTHING; pose=STILL;
   title_sequence();
   
   choose_level();
-  maze_number=micros(); // seed RNG, (Does this even work?)
+  maze_number=true_random(); // seed RNG
   level_splash();
    
   left_or_right();
   situation_report(HOME);
   if (level>1) situation_report2();
     
-  posn=HOME;
-  posn=enter_maze(posn); // begin the game, process outcome...
-  if (posn==65535) starved();
-  else if (posn!=0) mazogs_win(posn);
-  else welcome_back();   
-    
+  end_posn=enter_maze(); // begin the game, process outcome...
+  if (end_posn==65535) starved(); // starved();
+  else if (end_posn!=0) mazogs_win(end_posn);
+  else welcome_back();
   maybe_examine_maze();
   
 }

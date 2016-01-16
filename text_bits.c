@@ -6,6 +6,12 @@
 extern int level,carrying,initial_moves,moves_left,kill_moves,frame,pose;
 extern unsigned int maze_number;
 extern void black_screen();
+extern void pause();
+
+PROGMEM const unsigned char mazogs_bmp[]={
+0x0,0x7e,0x2,0x1e,0x2,0x7e,0x0,0x7e,0x12,0x7e,0x0,0x72,
+0x4a,0x46,0x0,0x7e,0x42,0x7e,0x0,0x7e,0x42,0x72,0x0,0x4e,0x4a,
+0x7a,0x0,0x0,0x0,0x0,0x0,0x0};
 
 // intro
 void intro()
@@ -13,7 +19,7 @@ void intro()
   black_screen();
   print(42,24,"ARDUBOY",1);
   display_display();
-  delay(1000);
+  pause(1500);
 }
 
 //----------------------------------------------------------
@@ -21,10 +27,6 @@ void intro()
 int title_sequence()
 {
   int i,x,y,frame=0;
-  PROGMEM const unsigned char mazogs_bmp[]={
-0x0,0x7e,0x2,0x1e,0x2,0x7e,0x0,0x7e,0x12,0x7e,0x0,0x72,
-0x4a,0x46,0x0,0x7e,0x42,0x7e,0x0,0x7e,0x42,0x72,0x0,0x4e,0x4a,
-0x7a,0x0,0x0,0x0,0x0,0x0,0x0};
 
   while(read_keys()); // wait till no keys pressed...
   // static screen elements...
@@ -38,7 +40,6 @@ int title_sequence()
   draw24x16tile(SWORD,3,3);
  
   get_b: 
-
   draw_bitmap(mazogs_bmp, 256+frame%6*128+100,28,frame%12<6);
   if (frame%20==0) {print(1,0,"A MAZE ADVENTURE GAME",0);};
   if (frame%20==10) {print(1,0," PRESS 'B' TO START  ",1);};
@@ -54,9 +55,9 @@ int title_sequence()
   }
   frame++;
   display_display();
-  for (i=0; i<100; i++) {
+  for (i=0; i<120; i++) {
     if (read_keys()==KEY_B) return(0);
-    delay(2);
+    pause(2);
   }
   goto get_b;  
 }
@@ -116,11 +117,11 @@ int level_splash()
       draw24x16tile(MAZOG2,1,1);
       draw24x16tile(MAZOG2,3,1);
       display_display();
-      delay(200);
+      pause(250);
       draw24x16tile(MAZOG,1,1);
       draw24x16tile(MAZOG,3,1);
       display_display();
-      delay(200);
+      pause(250);
     }
   }
   // print instructions...
@@ -128,7 +129,7 @@ int level_splash()
   display_display();
   create_maze();
   
-  delay(500); // remove if too slow...
+  pause(500); // remove if too slow...
   print(0,48,"MAZE READY, PRESS 'B'",1);
   display_display(); 
   while(read_keys()!=KEY_B);    
@@ -167,6 +168,7 @@ void pick_maze()
   goto loop;
 
   exit:  
+  print(0,56,"REDRAWING MAZE...",0);
   create_maze();
 }
 
@@ -200,7 +202,7 @@ int left_or_right()
   
   display_display();
   
-  delay(100);
+  pause(100);
   for (y=0; y<16;y+=2) for (x=0; x<16; x++) {
     tile1=read_maze(HOME+y*64+x-520);
     tile2=read_maze(HOME+(y+1)*64+x-520);
@@ -322,7 +324,7 @@ void starved()
      print(16,32,"    TO DEATH    ",frame);
      display_display();
      frame=!frame;
-     delay(200);
+     pause(200);
   }
 }
 
@@ -336,10 +338,10 @@ void mazogs_win(int posn)
   for (i=0; i<20; i++) {
     draw_maze(posn);
     frame=!frame;
-    delay(100);
+    pause(100);
   }
   black_screen(); display_display();
-  delay(100);
+  pause(100);
   for (i=0; i<20; i++) {
    draw_maze(posn);
    // cursor set
@@ -347,7 +349,7 @@ void mazogs_win(int posn)
    print(14,56,"TREASURE SEEKERS",frame);
    display_display();
    frame=!frame;
-   delay(200);
+   pause(200);
   } 
   grey_screen();
 }
@@ -370,7 +372,7 @@ void welcome_back()
     print(20,56," WELCOME BACK ",frame);
     display_display();
     frame=!frame;
-    delay(200);
+    pause(200);
   }
   write_maze(HOME,MAP_STILL);
   
@@ -383,7 +385,9 @@ void welcome_back()
     sprintf(s,"%i",moves_left);
     print(78,16,s,0);
     print(12,24,"SCORE=",0);
-    sprintf(s,"%i%%",moves_left*100/initial_moves);
+    // prevent 16-bit overflow in score....
+    initial_moves/=10;
+    sprintf(s,"%i%%",moves_left*10/initial_moves);
     print(48,24,s,0);
   }
 }
