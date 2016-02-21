@@ -54,7 +54,7 @@ int view_map(int posn)
   // charge 10 moves..... (original says 15 for level2, source disagrees)
   if (level>1 && moves_left>11) moves_left-=10;
   grey_screen();
-  for (i=30; i>0; i--) { // forced to view map for 30 frames
+  for (i=25; i>0; i--) { // forced to view map for 25 frames
     for (y=0; y<16;y+=2) for (x=0; x<16; x++) {
       tile1=read_maze(posn+y*64+x-520);
       tile2=read_maze(posn+y*64+64+x-520);
@@ -245,13 +245,13 @@ int fight(int posn)
    if (level>1) moves_left+=kill_moves;
    //printf("moves before=%i, after=%i\n",moves_left-kill_moves,moves_left);
    
-   for (i=0; i<6; i++) // animation cut-scene thing
+   for (i=0; i<5; i++) // animation cut-scene thing
      for (n=0; n<6; n++) {
        // (avoid running down the 'thisway' timer...)
        if (n%2==0) { pose=FIGHT+n/2; frame=frame^1; }
        else pose=MAZOG;
        draw_maze(posn);
-       pause(100);
+       pause(80);
      
    }
    write_maze(posn,CLEAR);

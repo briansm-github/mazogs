@@ -55,7 +55,7 @@ int title_sequence()
   }
   frame++;
   display_display();
-  for (i=0; i<120; i++) {
+  for (i=0; i<150; i++) {
     if (read_keys()==KEY_B) return(0);
     pause(2);
   }

@@ -224,8 +224,8 @@ int add_entrance()
   write_maze(1407,WALL);
   write_maze(1408,WALL);
   
-  // start location in maze saved as 1344...
-  posn=1344;
+  // start location in maze saved as 1344 (HOME)...
+  posn=HOME;
  
   left_check:
   write_maze(posn,CLEAR);
@@ -236,8 +236,8 @@ int add_entrance()
   goto left_check;
   
   left_ok:
-  posn=1344;
-  write_maze(1344,CLEAR); // redundant?
+  posn=HOME;
+  write_maze(HOME,CLEAR); // redundant?
   
   right_check:
   write_maze(posn,CLEAR);

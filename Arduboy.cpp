@@ -1,20 +1,22 @@
 #include "Arduboy.h"
 
-
+//----------------------------------------------------------------------
 Arduboy::Arduboy() {
 	scrolling = false;
 }
+
+//----------------------------------------------------------------------
 void Arduboy::start() {
 	pinMode(MOSI, OUTPUT);
 	pinMode(CLK, OUTPUT);
 	pinMode(DC, OUTPUT);
 	pinMode(CS, OUTPUT);
-	pinMode(8, INPUT_PULLUP);
-	pinMode(9, INPUT_PULLUP);
-	pinMode(5, INPUT_PULLUP);
-	pinMode(10, INPUT_PULLUP);
-	pinMode(A0, INPUT_PULLUP);
-	pinMode(A1, INPUT_PULLUP);
+	pinMode(PIN_UP_BUTTON, INPUT_PULLUP);
+	pinMode(PIN_LEFT_BUTTON, INPUT_PULLUP);
+	pinMode(PIN_RIGHT_BUTTON, INPUT_PULLUP);
+	pinMode(PIN_DOWN_BUTTON, INPUT_PULLUP);
+	pinMode(PIN_A_BUTTON, INPUT_PULLUP);
+	pinMode(PIN_B_BUTTON, INPUT_PULLUP);
 	
 	/*
 	clkport     = portOutputRegister(digitalPinToPort(CLK));
@@ -64,6 +66,7 @@ void Arduboy::start() {
 	SPI.transfer(0xAF);	// Display On
 	*csport |= cspinmask;
 }
+
 //----------------------------------------------------------------------
 void Arduboy::blank() {
 	*csport |= cspinmask;
@@ -88,6 +91,7 @@ void Arduboy::blank() {
 	for (int a = 0; a<1024; a++) SPI.transfer(0x00);
 //	*csport |= cspinmask;	
 }
+
 //----------------------------------------------------------------------
 void Arduboy::white() {
   *csport |= cspinmask;
@@ -225,285 +229,19 @@ void Arduboy::drawchar(unsigned char *bitmap, int x, int y) {
   for (int a = 0; a<6; a++) SPI.transfer(*bitmap++);                          
 }
 
-//---------------------------------------------------------------------
-void Arduboy::drawTile(int x, int _y, const unsigned char *image) {
-	uint8_t offset = 0;
-	uint8_t tail = 0;
-	if (x+8 < 0) { return; } // offscreen
-	if (x > 127) { return; } 	// offscreen
-	if (x < 0 && x+8 >= 0) { offset =- x; x = 0; }
-	if (x < 127 && x+8 > 127) { tail = x+8 - 127; }
-	
-	*csport |= cspinmask;
-	*dcport &= ~dcpinmask;
-	*csport &= ~cspinmask;
-	SPI.transfer(0x20); 		// set display mode
-	SPI.transfer(0x00);			// horizontal addressing mode
-	SPI.transfer(0x21); 		// set col address
-	unsigned char start = x;
-	unsigned char end = x + 8 - tail;
-	SPI.transfer(start & 0x7F);
-	SPI.transfer(end & 0x7F);
-	SPI.transfer(0x22); // set page address
-	start = _y;
-	end = _y;
-	SPI.transfer(start & 0x07);
-	SPI.transfer(end & 0x07);	
-//	*csport |= cspinmask;
-
-//	*csport |= cspinmask;
-	*dcport |= dcpinmask;
-	*csport &= ~cspinmask;
-//	for (uint8_t a = offset; a < 8 - tail; a++) { SPI.transfer(image[a]); }
-	for (uint8_t a = offset; a < 8 - tail; a++) { SPI.transfer(pgm_read_byte(image + a)); }
-//	*csport |= cspinmask;
-}
-//---------------------------------------------------------------------------------------
-void Arduboy::drawTile(int x, int _y, unsigned char image[]) {
-	uint8_t offset = 0;
-	uint8_t tail = 0;
-	if (x+8 < 0) { return; } // offscreen
-	if (x > 127) { return; } 	// offscreen
-	if (x < 0 && x+8 >= 0) { offset =- x; x = 0; }
-	if (x < 127 && x+8 > 127) { tail = x+8 - 127; }
-	
-	*csport |= cspinmask;
-	*dcport &= ~dcpinmask;
-	*csport &= ~cspinmask;
-	SPI.transfer(0x20); 		// set display mode
-	SPI.transfer(0x00);			// horizontal addressing mode
-	SPI.transfer(0x21); 		// set col address
-	unsigned char start = x;
-	unsigned char end = x + 8 - tail;
-	SPI.transfer(start & 0x7F);
-	SPI.transfer(end & 0x7F);
-	SPI.transfer(0x22); // set page address
-	start = _y;
-	end = _y;
-	SPI.transfer(start & 0x07);
-	SPI.transfer(end & 0x07);	
-//	*csport |= cspinmask;
-
-//	*csport |= cspinmask;
-	*dcport |= dcpinmask;
-	*csport &= ~cspinmask;
-	for (uint8_t a = offset; a < 8 - tail; a++) { SPI.transfer(image[a]); }
-//	for (uint8_t a = offset; a < 8 - tail; a++) { SPI.transfer(pgm_read_byte(image + a)); }
-//	*csport |= cspinmask;
-}
-
-//---------------------------------------------------------------------------------------
-void Arduboy::drawSprite(int x, int y, const unsigned char *image, uint8_t frame) {
-	uint8_t xoffset = 0;
-	uint8_t yoffset = (y % 8);
-	uint8_t tail = 0;
-	if (x+8 < 0) { return; } 	// offscreen
-	if (x > 127) { return; } 	// offscreen
-	if (x < 0 && x+8 >= 0) { xoffset =- x; x = 0; }
-	if (x < 127 && x+8 > 127) { tail = x+8 - 127; }
-	*csport |= cspinmask;
-	*dcport &= ~dcpinmask;
-	*csport &= ~cspinmask;
-	SPI.transfer(0x20); 		// set display mode
-	SPI.transfer(0x00);			// horizontal addressing mode
-	SPI.transfer(0x21); 		// set col address
-	unsigned char start = x;
-	unsigned char end = x + 7 - tail;
-	SPI.transfer(start & 0x7F);
-	SPI.transfer(end & 0x7F);
-	SPI.transfer(0x22);			// set page address
-	start = y / 8;
-	if (yoffset == 0) { end = start; }
-	else { end = start + 1; }
-	SPI.transfer(start & 0x07);
-	SPI.transfer(end & 0x07);	
-//	*csport |= cspinmask;
-
-//	*csport |= cspinmask;
-	*dcport |= dcpinmask;
-	*csport &= ~cspinmask;
-	
-	if (start == end) for (uint8_t a = xoffset; a < 8-tail; a++) SPI.transfer(pgm_read_byte( image + a + (frame*8) ));
-	else {
-		for (uint8_t a = xoffset; a < 8-tail; a++) SPI.transfer(pgm_read_byte( image + a + (frame*8) ) << yoffset);
-		for (uint8_t a = xoffset; a < 8-tail; a++) SPI.transfer(pgm_read_byte( image + a + (frame*8) ) >> (8 - yoffset));
-	}
-
-//	if (start == end) for (uint8_t a = xoffset; a < 8-tail; a++) SPI.transfer(image[a + (frame*8)]);
-//	else {
-//		for (uint8_t a = xoffset; a < 8-tail; a++) SPI.transfer(image[a + (frame*8)] << yoffset);
-//		for (uint8_t a = xoffset; a < 8-tail; a++) SPI.transfer(image[a + (frame*8)] >> (8 - yoffset));
-//	}
-
-//	*csport |= cspinmask;
-}
-
 //--------------------------------------------------------------------------------------------------------------
-void Arduboy::scrollLeft() {
-	if (!scrolling){
-		scrolling = true;
-		*csport |= cspinmask;
-		*dcport &= ~dcpinmask;
-		*csport &= ~cspinmask;
-		SPI.transfer(0x27);	// Start Left Scroll
-		SPI.transfer(0x00);	// Blank
-		SPI.transfer(0x00);	// Start Page Address
-		SPI.transfer(0x07);	// Time interval (2 frames)
-		SPI.transfer(0x0F);	// End Page Address
-		SPI.transfer(0x00);	//
-		SPI.transfer(0xFF);	//
-		SPI.transfer(0x2F);	// Activate Scroll
-		delay(12);			// Wait 2 frames
-		SPI.transfer(0x2E);	// End scroll
-		*csport |= cspinmask;
-		scrolling = false;
-	}
-}
+
 uint8_t Arduboy::getInput() {
 
 	// b00lurdab
 	uint8_t value = B00000000;
 	
-	if (digitalRead(9)==0) { value = value | B00100000; }	// left
-	if (digitalRead(8)==0) { value = value | B00010000; }	// up
-	if (digitalRead(5)==0) { value = value | B00001000; }	// right
-	if (digitalRead(10)==0) { value = value | B00000100; }	// down
-	if (digitalRead(A1)==0) 	   { value = value | B00000010; }	// a?
-	if (digitalRead(A0)==0)		   { value = value | B00000001; }	// b?
+	if (digitalRead(PIN_LEFT_BUTTON)==0) { value = value | B00100000; }
+	if (digitalRead(PIN_UP_BUTTON)==0) { value = value | B00010000; }	
+	if (digitalRead(PIN_RIGHT_BUTTON)==0) { value = value | B00001000; }	
+	if (digitalRead(PIN_DOWN_BUTTON)==0) { value = value | B00000100; }	
+	if (digitalRead(PIN_A_BUTTON)==0) 	   { value = value | B00000001; }	
+	if (digitalRead(PIN_B_BUTTON)==0)		   { value = value | B00000010; }
 	return value;
-}
-uint8_t Arduboy::readCapacitivePin(int pinToMeasure) {
-	/*	readCapacitivePin
-		Input: Arduino pin number
-		Output: A number, from 0 to 17 expressing
-		how much capacitance is on the pin
-		When you touch the pin, or whatever you have
-		attached to it, the number will get higher 
-	*/
-
-	// Variables used to translate from Arduino to AVR pin naming
-	volatile uint8_t* port;
-	volatile uint8_t* ddr;
-	volatile uint8_t* pin;
-	// Here we translate the input pin number from
-	// Arduino pin number to the AVR PORT, PIN, DDR,
-	// and which bit of those registers we care about.
-	byte bitmask;
-	port = portOutputRegister(digitalPinToPort(pinToMeasure));
-	ddr = portModeRegister(digitalPinToPort(pinToMeasure));
-	bitmask = digitalPinToBitMask(pinToMeasure);
-	pin = portInputRegister(digitalPinToPort(pinToMeasure));
-	// Discharge the pin first by setting it low and output
-	*port &= ~(bitmask);
-	*ddr  |= bitmask;
-	delay(1);
-	// Prevent the timer IRQ from disturbing our measurement
-	noInterrupts();
-	// Make the pin an input with the internal pull-up on
-	*ddr &= ~(bitmask);
-	*port |= bitmask;
-
-	// Now see how long the pin to get pulled up. This manual unrolling of the loop
-	// decreases the number of hardware cycles between each read of the pin,
-	// thus increasing sensitivity.
-	uint8_t cycles = 17;
-	if (*pin & bitmask) { cycles =  0;}
-	else if (*pin & bitmask) { cycles =  1;}
-	else if (*pin & bitmask) { cycles =  2;}
-	else if (*pin & bitmask) { cycles =  3;}
-	else if (*pin & bitmask) { cycles =  4;}
-	else if (*pin & bitmask) { cycles =  5;}
-	else if (*pin & bitmask) { cycles =  6;}
-	else if (*pin & bitmask) { cycles =  7;}
-	else if (*pin & bitmask) { cycles =  8;}
-	else if (*pin & bitmask) { cycles =  9;}
-	else if (*pin & bitmask) { cycles = 10;}
-	else if (*pin & bitmask) { cycles = 11;}
-	else if (*pin & bitmask) { cycles = 12;}
-	else if (*pin & bitmask) { cycles = 13;}
-	else if (*pin & bitmask) { cycles = 14;}
-	else if (*pin & bitmask) { cycles = 15;}
-	else if (*pin & bitmask) { cycles = 16;}
-
-	// End of timing-critical section
-	interrupts();
-
-	// Discharge the pin again by setting it low and output
-	// It's important to leave the pins low if you want to 
-	// be able to touch more than 1 sensor at a time - if
-	// the sensor is left pulled high, when you touch
-	// two sensors, your body will transfer the charge between
-	// sensors.
-	*port &= ~(bitmask);
-	*ddr  |= bitmask;
-
-	return cycles;
-}
-uint8_t Arduboy::readCapXtal(int pinToMeasure) {
-	// Variables used to translate from Arduino to AVR pin naming
-	// volatile uint8_t* port;
-	// volatile uint8_t* ddr;
-	// volatile uint8_t* pin;
-
-	// Here we translate the input pin number from
-	// Arduino pin number to the AVR PORT, PIN, DDR,
-	// and which bit of those registers we care about.
-	byte bitmask;
-	if(pinToMeasure == 2){ bitmask = B10000000; }
-	else { bitmask = B01000000; }
-  
-	// port = portOutputRegister(PORTB);
-	// ddr = portModeRegister(DDRB);
-	// bitmask = PINB;
-	// pin = portInputRegister(PINB);
-	// Discharge the pin first by setting it low and output
-  
-	// bitmask =  B10000000
-	// ~(bitmask) = B01111111
-  
-	PORTB &= ~(bitmask);  // SET LOW
-	DDRB  |= bitmask;  // OUTPUT
-	delay(1);
-	// Prevent the timer IRQ from disturbing our measurement
-	noInterrupts();
-	// Make the pin an input with the internal pull-up on
-	DDRB &= ~(bitmask);  // INPUT
-	PORTB |= bitmask;
-
-	// Now see how long the pin to get pulled up. This manual unrolling of the loop
-	// decreases the number of hardware cycles between each read of the pin,
-	// thus increasing sensitivity.
-	uint8_t cycles = 17;
-		 if (PINB & bitmask) { cycles =  0;}
-	else if (PINB & bitmask) { cycles =  1;}
-	else if (PINB & bitmask) { cycles =  2;}
-	else if (PINB & bitmask) { cycles =  3;}
-	else if (PINB & bitmask) { cycles =  4;}
-	else if (PINB & bitmask) { cycles =  5;}
-	else if (PINB & bitmask) { cycles =  6;}
-	else if (PINB & bitmask) { cycles =  7;}
-	else if (PINB & bitmask) { cycles =  8;}
-	else if (PINB & bitmask) { cycles =  9;}
-	else if (PINB & bitmask) { cycles = 10;}
-	else if (PINB & bitmask) { cycles = 11;}
-	else if (PINB & bitmask) { cycles = 12;}
-	else if (PINB & bitmask) { cycles = 13;}
-	else if (PINB & bitmask) { cycles = 14;}
-	else if (PINB & bitmask) { cycles = 15;}
-	else if (PINB & bitmask) { cycles = 16;}
-
-	// End of timing-critical section
-	interrupts();
-
-	// Discharge the pin again by setting it low and output
-	// It's important to leave the pins low if you want to 
-	// be able to touch more than 1 sensor at a time - if
-	// the sensor is left pulled high, when you touch
-	// two sensors, your body will transfer the charge between
-	// sensors.
-	PORTB &= ~(bitmask);
-	DDRB  |= bitmask;
-
-	return cycles;
 }
 
