@@ -88,7 +88,8 @@ int explore_map()
         draw4x4tile(tile1,tile2,x,y);
       }
    print(0,24,"   USE D-PAD TO MOVE  ",1);
-   print(0,32," PRESS B FOR NEW GAME ",1);
+   print(0,32," PRESS A TO SOLVE     ",1);
+   print(0,40," PRESS B FOR NEW GAME ",1);
    display_display();
    while(read_keys()==0); // wait for keypress
    while(read_keys()==KEY_B);
@@ -106,6 +107,11 @@ int explore_map()
       if (keypress==KEY_DOWN && posn<1984) posn+=64; 
       if (keypress==KEY_LEFT && posn>0) posn--; 
       if (keypress==KEY_RIGHT && posn<2048) posn++;
+      if (keypress==KEY_A) {
+        clear_trails();
+        solve_maze(HOME);
+	clear_badsearches();
+      }
       if (keypress==KEY_B) { 
           while(read_keys());
           return(0);
@@ -222,8 +228,8 @@ unsigned int check_move(int posn, int newposn)
   
   // just movement then, first check there are enough moves left...
   if (level>1) {
-    moves_left--; if (moves_left==0) // starved...
-     {write_maze(posn,MAP_DEAD); return(65535);} 
+    moves_left--; if (moves_left==0) // starved... (drop treasure)
+     {if (carrying==HAVE_TREASURE) write_maze(posn,TREASURE); return(65535);} 
   }
   // now set pose for movement direction then....
   if (newposn-posn==-64) pose=UP+carrying+move_frame;

@@ -350,6 +350,7 @@ void mazogs_win(int posn)
    display_display();
    frame=!frame;
    pause(200);
+   if (carrying==HAVE_TREASURE) write_maze(posn,TREASURE); // drop treasure
   } 
   grey_screen();
 }
