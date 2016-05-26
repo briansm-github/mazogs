@@ -136,12 +136,10 @@ void print(int x, int y, char *s, int colour)
 
 void setup() {
   
-	SPI.begin();
-	Arduboy.start();
-	Arduboy.blank();
-	ltime = millis();
-	
-	digitalWrite(17,LOW);
+  SPI.begin();
+  Arduboy.start();
+  Arduboy.blank();
+  ltime = millis();
 
   setup_c();
 }
