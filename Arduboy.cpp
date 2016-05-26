@@ -65,6 +65,14 @@ void Arduboy::start() {
 	SPI.transfer(0xA6); // Set normal/inverse display
 	SPI.transfer(0xAF);	// Display On
 	*csport |= cspinmask;
+
+	// turn all the LEDs off...
+	digitalWrite(TX_LED, 255);
+	digitalWrite(RX_LED, 255);
+ 
+	digitalWrite(RED_LED, 255);
+	digitalWrite(GREEN_LED, 255);
+	digitalWrite(BLUE_LED, 255);
 }
 
 //----------------------------------------------------------------------

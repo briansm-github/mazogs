@@ -19,6 +19,12 @@
 #define PIN_DOWN_BUTTON 10
 #define PIN_A_BUTTON A0
 #define PIN_B_BUTTON A1
+// map all LEDs to the single TX LED on DEVKIT
+#define RED_LED 17
+#define GREEN_LED 17
+#define BLUE_LED 17
+#define TX_LED 17
+#define RX_LED 17
 
 //-------------------------------------------------------------
 #else
@@ -32,6 +38,12 @@
 #define PIN_DOWN_BUTTON A3
 #define PIN_A_BUTTON 7
 #define PIN_B_BUTTON 8
+
+#define RED_LED 10
+#define GREEN_LED 11
+#define BLUE_LED 9
+#define TX_LED 30
+#define RX_LED 17
 
 #endif
 //--------------------------------------------------------------
